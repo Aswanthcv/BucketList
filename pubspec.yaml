@@ -30,6 +30,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_launcher_icons: ^0.14.4
   flutter_riverpod: ^2.6.1
   hive: ^2.2.3
   hive_flutter: ^1.1.0
@@ -87,3 +88,9 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/bucket_icon.png"
+  adaptive_icon_background: "#00897B"
+  adaptive_icon_foreground: "assets/icon/bucket_icon.png"

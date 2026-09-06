@@ -118,10 +118,8 @@ void main() {
     await initRepo(tester, seed: [sampleItem()]);
     await pumpBucketList(tester);
 
-    // Initially not completed (no check icon)
-    expect(find.byKey(const ValueKey('toggle-1')), findsOneWidget);
-
-    await tester.tap(find.byKey(const ValueKey('toggle-1')));
+    // Tapping the item tile prompts for the actual price before completing.
+    await tester.tap(find.text('Visit Goa'));
     await tester.pumpAndSettle();
 
     // Dialog asks for the actual price before completing.
@@ -133,7 +131,6 @@ void main() {
     await tester.tap(find.text('Complete'));
     await tester.pumpAndSettle();
 
-    expect(find.byIcon(Icons.check), findsOneWidget);
     expect(repository.getAll().single.isCompleted, true);
   });
 
@@ -143,7 +140,7 @@ void main() {
     ]);
     await pumpBucketList(tester);
 
-    await tester.tap(find.byKey(const ValueKey('toggle-1')));
+    await tester.tap(find.text('Visit Goa'));
     await tester.pumpAndSettle();
 
     // No prompt needed; item completes immediately.
@@ -156,14 +153,13 @@ void main() {
     await initRepo(tester, seed: [sampleItem()]);
     await pumpBucketList(tester);
 
-    await tester.tap(find.byKey(const ValueKey('toggle-1')));
+    await tester.tap(find.text('Visit Goa'));
     await tester.pumpAndSettle();
 
     expect(find.text('Complete "Visit Goa"?'), findsOneWidget);
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
 
-    expect(find.byIcon(Icons.check), findsNothing);
     expect(repository.getAll().single.isCompleted, false);
   });
 
@@ -171,10 +167,10 @@ void main() {
     await initRepo(tester, seed: [sampleItem(completed: true)]);
     await pumpBucketList(tester);
 
-    // Item already completed (check icon visible).
-    expect(find.byIcon(Icons.check), findsOneWidget);
+    // Item already completed.
+    expect(repository.getAll().single.isCompleted, true);
 
-    await tester.tap(find.byKey(const ValueKey('toggle-1')));
+    await tester.tap(find.text('Visit Goa'));
     await tester.pumpAndSettle();
 
     // No prompt, item un-completes immediately.
@@ -828,8 +824,8 @@ void main() {
       ]);
       await pumpBucketList(tester);
 
-      // Complete via the checkbox (prompts for actual price; leave empty).
-      await tester.tap(find.byKey(const ValueKey('toggle-1')));
+      // Complete via the item tile (prompts for actual price; leave empty).
+      await tester.tap(find.text('Goa trip'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Complete'));
       await tester.pumpAndSettle();

@@ -11,7 +11,7 @@ import '../widgets/empty_state.dart';
 import '../widgets/section_header.dart';
 import 'add_item_screen.dart';
 import 'bucket_list_screen.dart';
-import 'item_details_screen.dart';
+import 'edit_item_screen.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -49,19 +49,11 @@ class DashboardScreen extends ConsumerWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
       children: [
-        _QuickActions(
-          onAdd: () => _openAddItem(context),
-          onOpenList: () => _openBucketList(context),
-        ),
-        const SizedBox(height: 16),
-        _StatsOverview(stats: stats),
-        const SizedBox(height: 24),
         _RecentItemsSection(
           items: items,
           onViewAll: () => _openBucketList(context),
-          onOpenItem: (item) => _openItemDetails(context, item),
-          onToggleComplete: (item) =>
-              _toggleComplete(context, ref, item),
+          onTap: (item) => _toggleComplete(context, ref, item),
+          onEdit: (item) => _openEditItem(context, item),
           onToggleFavorite: (item) {
             ref
                 .read(bucketListProvider.notifier)
@@ -72,9 +64,8 @@ class DashboardScreen extends ConsumerWidget {
           const SizedBox(height: 24),
           _PrioritiesSection(
             items: items,
-            onOpenItem: (item) => _openItemDetails(context, item),
-            onToggleComplete: (item) =>
-                _toggleComplete(context, ref, item),
+            onTap: (item) => _toggleComplete(context, ref, item),
+            onEdit: (item) => _openEditItem(context, item),
             onToggleFavorite: (item) {
               ref
                   .read(bucketListProvider.notifier)
@@ -106,10 +97,10 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  void _openItemDetails(BuildContext context, BucketItem item) {
+  void _openEditItem(BuildContext context, BucketItem item) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => ItemDetailsScreen(itemId: item.id),
+        builder: (context) => EditItemScreen(item: item),
       ),
     );
   }
@@ -121,121 +112,6 @@ class DashboardScreen extends ConsumerWidget {
     } else {
       completeItemWithActualPrice(context, ref, item);
     }
-  }
-}
-
-class _QuickActions extends StatelessWidget {
-  const _QuickActions({
-    required this.onAdd,
-    required this.onOpenList,
-  });
-
-  final VoidCallback onAdd;
-  final VoidCallback onOpenList;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: FilledButton.icon(
-            onPressed: onAdd,
-            icon: const Icon(Icons.add),
-            label: const Text('Add Item'),
-            style: FilledButton.styleFrom(
-              minimumSize: const Size.fromHeight(52),
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: OutlinedButton.icon(
-            onPressed: onOpenList,
-            icon: const Icon(Icons.list_alt),
-            label: const Text('Bucket List'),
-            style: OutlinedButton.styleFrom(
-              minimumSize: const Size.fromHeight(52),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _StatsOverview extends StatelessWidget {
-  const _StatsOverview({required this.stats});
-
-  final BucketStats stats;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Row(
-          children: [
-            Expanded(child: _StatCard(label: 'Total', value: stats.totalItems, icon: Icons.inventory_2_outlined)),
-            const SizedBox(width: 12),
-            Expanded(child: _StatCard(label: 'Active', value: stats.remainingItems, icon: Icons.bolt_outlined)),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(child: _StatCard(label: 'Completed', value: stats.completedItems, icon: Icons.check_circle_outline)),
-            const SizedBox(width: 12),
-            Expanded(child: _StatCard(label: 'Favorites', value: stats.favoriteItems, icon: Icons.star_border)),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class _StatCard extends StatelessWidget {
-  const _StatCard({
-    required this.label,
-    required this.value,
-    required this.icon,
-  });
-
-  final String label;
-  final int value;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: theme.colorScheme.outlineVariant),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 20, color: theme.colorScheme.primary),
-          const SizedBox(height: 12),
-          Text(
-            '$value',
-            style: theme.textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }
 
@@ -399,15 +275,15 @@ class _RecentItemsSection extends StatelessWidget {
   const _RecentItemsSection({
     required this.items,
     required this.onViewAll,
-    required this.onOpenItem,
-    required this.onToggleComplete,
+    required this.onTap,
+    required this.onEdit,
     required this.onToggleFavorite,
   });
 
   final List<BucketItem> items;
   final VoidCallback onViewAll;
-  final ValueChanged<BucketItem> onOpenItem;
-  final ValueChanged<BucketItem> onToggleComplete;
+  final ValueChanged<BucketItem> onTap;
+  final ValueChanged<BucketItem> onEdit;
   final ValueChanged<BucketItem> onToggleFavorite;
 
   @override
@@ -430,8 +306,8 @@ class _RecentItemsSection extends StatelessWidget {
         for (final item in shown) ...[
           BucketListItem(
             item: item,
-            onTap: () => onOpenItem(item),
-            onToggleComplete: () => onToggleComplete(item),
+            onTap: () => onTap(item),
+            onEdit: () => onEdit(item),
             onToggleFavorite: () => onToggleFavorite(item),
             showMenu: false,
           ),
@@ -445,14 +321,14 @@ class _RecentItemsSection extends StatelessWidget {
 class _PrioritiesSection extends StatelessWidget {
   const _PrioritiesSection({
     required this.items,
-    required this.onOpenItem,
-    required this.onToggleComplete,
+    required this.onTap,
+    required this.onEdit,
     required this.onToggleFavorite,
   });
 
   final List<BucketItem> items;
-  final ValueChanged<BucketItem> onOpenItem;
-  final ValueChanged<BucketItem> onToggleComplete;
+  final ValueChanged<BucketItem> onTap;
+  final ValueChanged<BucketItem> onEdit;
   final ValueChanged<BucketItem> onToggleFavorite;
 
   @override
@@ -471,8 +347,8 @@ class _PrioritiesSection extends StatelessWidget {
         for (final item in shown) ...[
           BucketListItem(
             item: item,
-            onTap: () => onOpenItem(item),
-            onToggleComplete: () => onToggleComplete(item),
+            onTap: () => onTap(item),
+            onEdit: () => onEdit(item),
             onToggleFavorite: () => onToggleFavorite(item),
             showMenu: false,
           ),

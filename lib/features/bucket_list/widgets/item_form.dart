@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../constants/categories.dart';
 import '../../../theme/app_theme.dart';
+import '../utils/price_confirmation.dart';
 
 class ItemForm extends StatefulWidget {
   const ItemForm({
@@ -92,7 +93,7 @@ class _ItemFormState extends State<ItemForm> {
     return double.tryParse(trimmed);
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     FocusScope.of(context).unfocus();
 
     if (!_formKey.currentState!.validate()) {
@@ -104,6 +105,24 @@ class _ItemFormState extends State<ItemForm> {
     final note = _noteController.text.trim().isEmpty
         ? null
         : _noteController.text.trim();
+
+    if (price > 100000 || price == 0) {
+      final confirmed = await confirmPriceValue(
+        context,
+        value: price,
+        label: 'estimated price',
+      );
+      if (!confirmed || !mounted) return;
+    }
+
+    if (actualPrice != null && (actualPrice > 100000 || actualPrice == 0)) {
+      final confirmed = await confirmPriceValue(
+        context,
+        value: actualPrice,
+        label: 'actual price',
+      );
+      if (!confirmed || !mounted) return;
+    }
 
     widget.onSubmit(
       _titleController.text.trim(),
@@ -191,8 +210,7 @@ class _ItemFormState extends State<ItemForm> {
             textInputAction: TextInputAction.next,
             decoration: const InputDecoration(
               labelText: 'Estimated price',
-              hintText: '₹5,000',
-              prefixText: '₹ ',
+              hintText: 'Enter Amount',
             ),
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
@@ -217,9 +235,8 @@ class _ItemFormState extends State<ItemForm> {
             textInputAction: TextInputAction.next,
             decoration: const InputDecoration(
               labelText: 'Actual price (optional)',
-              hintText: '₹4,500',
+              hintText: 'Enter Amount',
               helperText: 'What you actually spent',
-              prefixText: '₹ ',
             ),
             validator: _validateOptionalPrice,
           ),

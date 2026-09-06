@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/bucket_item.dart';
 import '../providers/bucket_list_provider.dart';
 import '../utils/currency_formatter.dart';
+import '../utils/price_confirmation.dart';
 
 /// Completes an item, prompting for the actual price when none is recorded.
 ///
@@ -42,6 +43,7 @@ class CompleteItemDialog extends StatefulWidget {
 
 class _CompleteItemDialogState extends State<CompleteItemDialog> {
   final _controller = TextEditingController();
+  String? _errorText;
 
   @override
   void dispose() {
@@ -49,15 +51,31 @@ class _CompleteItemDialogState extends State<CompleteItemDialog> {
     super.dispose();
   }
 
-  void _complete() {
+  Future<void> _complete() async {
     final raw = _controller.text.trim();
     double? actual;
     if (raw.isNotEmpty) {
       final parsed = double.tryParse(raw);
-      if (parsed != null && parsed >= 0) {
-        actual = parsed;
+      if (parsed == null) {
+        setState(() => _errorText = 'Please enter a valid price');
+        return;
       }
+      if (parsed < 0) {
+        setState(() => _errorText = 'Price cannot be negative');
+        return;
+      }
+      actual = parsed;
     }
+
+    if (actual != null && (actual > 100000 || actual == 0)) {
+      final confirmed = await confirmPriceValue(
+        context,
+        value: actual,
+        label: 'actual price',
+      );
+      if (!confirmed || !mounted) return;
+    }
+
     widget.ref
         .read(bucketListProvider.notifier)
         .completeItem(widget.item.id, actualPrice: actual);
@@ -95,10 +113,15 @@ class _CompleteItemDialogState extends State<CompleteItemDialog> {
             controller: _controller,
             autofocus: false,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(
+            onChanged: (_) {
+              if (_errorText != null) {
+                setState(() => _errorText = null);
+              }
+            },
+            decoration: InputDecoration(
               labelText: 'Actual price',
-              hintText: 'What you actually spent',
-              prefixText: '₹ ',
+              hintText: 'Enter Amount',
+              errorText: _errorText,
             ),
           ),
           const SizedBox(height: 8),

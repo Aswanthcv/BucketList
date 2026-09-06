@@ -5,6 +5,7 @@ import 'app/app.dart';
 import 'features/bucket_list/models/bucket_item.dart';
 import 'features/bucket_list/repositories/bucket_list_repository.dart';
 import 'features/bucket_list/providers/bucket_list_provider.dart';
+import 'onboarding/tutorial_settings.dart';
 import 'theme/theme_provider.dart';
 
 void main() async {
@@ -17,12 +18,14 @@ void main() async {
   await repository.init();
 
   final themeSettings = await ThemeSettings.open();
+  final tutorialSettings = await TutorialSettings.open();
 
   runApp(
     ProviderScope(
       overrides: [
         bucketListRepositoryProvider.overrideWithValue(repository),
         themeSettingsProvider.overrideWithValue(themeSettings),
+        tutorialSettingsProvider.overrideWithValue(tutorialSettings),
       ],
       child: const BucketListApp(),
     ),

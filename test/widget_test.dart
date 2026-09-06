@@ -7,6 +7,7 @@ import 'package:bucketlist/app/app.dart';
 import 'package:bucketlist/features/bucket_list/models/bucket_item.dart';
 import 'package:bucketlist/features/bucket_list/repositories/bucket_list_repository.dart';
 import 'package:bucketlist/features/bucket_list/providers/bucket_list_provider.dart';
+import 'package:bucketlist/onboarding/tutorial_settings.dart';
 import 'package:bucketlist/theme/theme_provider.dart';
 
 void main() {
@@ -59,6 +60,8 @@ void main() {
         bucketListRepositoryProvider.overrideWithValue(repository),
         themeSettingsProvider
             .overrideWithValue(ThemeSettings.inMemory(themeMode)),
+        tutorialSettingsProvider
+            .overrideWithValue(TutorialSettings.inMemory()),
       ],
       child: const BucketListApp(),
     );

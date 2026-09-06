@@ -290,16 +290,13 @@ void main() {
       await tester.tap(find.widgetWithText(FilledButton, 'Save Changes'));
       await tester.pumpAndSettle();
 
-      // Back on Item Details, confirming the edit persisted.
+      // Back on Bucket List, confirming the edit persisted.
+      expect(find.text('Visit Goa'), findsOneWidget);
       expect(find.text('₹20,000.00'), findsWidgets);
 
-      // Pop back to Bucket List and confirm the updated value.
+      // Pop back to the Dashboard and confirm the total reflects the edit.
       tester.state<NavigatorState>(find.byType(Navigator)).pop();
       await tester.pumpAndSettle();
-      tester.state<NavigatorState>(find.byType(Navigator)).pop();
-      await tester.pumpAndSettle();
-
-      // Back on the Dashboard, confirm the total reflects the edit.
       expect(find.text('₹20,000.00'), findsWidgets);
     });
 
@@ -314,13 +311,7 @@ void main() {
       await tester.tap(find.widgetWithText(FilledButton, 'Save Changes'));
       await tester.pumpAndSettle();
 
-      // Confirm on the Details screen.
-      expect(find.text('₹20,000.00'), findsWidgets);
-
-      // Pop back to Bucket List.
-      tester.state<NavigatorState>(find.byType(Navigator)).pop();
-      await tester.pumpAndSettle();
-
+      // Back on Bucket List, confirming the edit persisted.
       expect(find.text('Visit Goa'), findsOneWidget);
       expect(find.text('₹20,000.00'), findsWidgets);
     });
@@ -334,8 +325,8 @@ void main() {
   });
 }
 
-/// Navigates Dashboard -> Bucket List -> Item Details -> Edit Item through the
-/// real widget navigation stack, landing on the Edit Item screen.
+/// Navigates Dashboard -> Bucket List -> Edit Item through the real widget
+/// navigation stack, landing on the Edit Item screen (via the edit button).
 Future<void> openEditThroughNavigation(
   WidgetTester tester,
   ProviderContainer container,
@@ -356,11 +347,7 @@ Future<void> openEditThroughNavigation(
   await tester.tap(find.text('View all'));
   await tester.pumpAndSettle();
 
-  // Bucket List -> Item Details
-  await tester.tap(find.text('Visit Goa'));
-  await tester.pumpAndSettle();
-
-  // Item Details -> Edit Item
-  await tester.tap(find.text('Edit'));
+  // Bucket List -> Edit Item (edit button next to the item name).
+  await tester.tap(find.byKey(const ValueKey('edit-item-1')));
   await tester.pumpAndSettle();
 }

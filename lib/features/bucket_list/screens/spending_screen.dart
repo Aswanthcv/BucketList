@@ -8,6 +8,7 @@ import '../utils/currency_formatter.dart';
 import '../widgets/bucket_list_item.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/section_header.dart';
+import 'edit_item_screen.dart';
 import 'item_details_screen.dart';
 
 class SpendingScreen extends ConsumerWidget {
@@ -123,7 +124,13 @@ class _RecentSpending extends StatelessWidget {
                 ),
               );
             },
-            onToggleComplete: () {},
+            onEdit: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => EditItemScreen(item: item),
+                ),
+              );
+            },
             showMenu: false,
           ),
           if (item != purchased.last) const SizedBox(height: 8),

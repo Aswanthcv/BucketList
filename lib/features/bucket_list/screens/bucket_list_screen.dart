@@ -9,7 +9,7 @@ import '../widgets/bucket_list_item.dart';
 import '../widgets/complete_item_dialog.dart';
 import '../widgets/empty_state.dart';
 import 'add_item_screen.dart';
-import 'item_details_screen.dart';
+import 'edit_item_screen.dart';
 
 enum BucketListSort {
   newestFirst('Newest first'),
@@ -266,19 +266,19 @@ class _BucketListScreenState extends ConsumerState<BucketListScreen> {
         return BucketListItem(
           item: item,
           onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => ItemDetailsScreen(itemId: item.id),
-              ),
-            );
-          },
-          onToggleComplete: () {
             if (item.isCompleted) {
               // Un-completing never needs an actual price.
               ref.read(bucketListProvider.notifier).toggleComplete(item.id);
             } else {
               completeItemWithActualPrice(context, ref, item);
             }
+          },
+          onEdit: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => EditItemScreen(item: item),
+              ),
+            );
           },
           onDelete: () => _confirmDelete(context, ref, item),
           onToggleFavorite: () {

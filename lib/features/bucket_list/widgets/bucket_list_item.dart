@@ -44,7 +44,7 @@ class BucketListItem extends StatelessWidget {
     super.key,
     required this.item,
     required this.onTap,
-    required this.onToggleComplete,
+    this.onEdit,
     this.onDelete,
     this.onToggleFavorite,
     this.showMenu = true,
@@ -52,7 +52,7 @@ class BucketListItem extends StatelessWidget {
 
   final BucketItem item;
   final VoidCallback onTap;
-  final VoidCallback onToggleComplete;
+  final VoidCallback? onEdit;
   final VoidCallback? onDelete;
   final VoidCallback? onToggleFavorite;
   final bool showMenu;
@@ -88,14 +88,7 @@ class BucketListItem extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             child: Row(
               children: [
-                _CompletionCheckbox(
-                  key: ValueKey('toggle-${item.id}'),
-                  isCompleted: item.isCompleted,
-                  color: AppColors.categoryColor(item.category),
-                  onChanged: onToggleComplete,
-                ),
                 if (onToggleFavorite != null) ...[
-                  const SizedBox(width: 10),
                   _FavoriteToggle(
                     key: ValueKey('favorite-${item.id}'),
                     isFavorite: item.isFavorite,
@@ -103,7 +96,7 @@ class BucketListItem extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                 ] else
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 4),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -203,58 +196,29 @@ class BucketListItem extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (onEdit != null) ...[
+                  const SizedBox(width: 4),
+                  IconButton(
+                    key: ValueKey('edit-${item.id}'),
+                    tooltip: 'Edit',
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 34,
+                      minHeight: 34,
+                      maxWidth: 34,
+                      maxHeight: 34,
+                    ),
+                    iconSize: 18,
+                    icon: Icon(
+                      Icons.edit_outlined,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    onPressed: onEdit,
+                  ),
+                ],
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _CompletionCheckbox extends StatelessWidget {
-  const _CompletionCheckbox({
-    super.key,
-    required this.isCompleted,
-    required this.color,
-    required this.onChanged,
-  });
-
-  final bool isCompleted;
-  final Color? color;
-  final VoidCallback onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onChanged,
-      child: AnimatedScale(
-        scale: isCompleted ? 1.0 : 0.9,
-        duration: const Duration(milliseconds: 150),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          width: 26,
-          height: 26,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: isCompleted
-                ? (color ?? Theme.of(context).colorScheme.primary)
-                : Colors.transparent,
-            border: Border.all(
-              width: 2,
-              color: isCompleted
-                  ? (color ?? Theme.of(context).colorScheme.primary)
-                  : Theme.of(context).colorScheme.outline,
-            ),
-          ),
-          child: isCompleted
-              ? const Icon(
-                  Icons.check,
-                  size: 16,
-                  color: Colors.white,
-                )
-              : null,
         ),
       ),
     );
