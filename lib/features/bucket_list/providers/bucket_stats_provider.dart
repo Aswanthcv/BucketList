@@ -6,6 +6,7 @@ class BucketStats {
   final int totalItems;
   final int completedItems;
   final int remainingItems;
+  final int favoriteItems;
   final double totalCost;
   final double remainingCost;
   final double completedCost;
@@ -16,6 +17,7 @@ class BucketStats {
     required this.totalItems,
     required this.completedItems,
     required this.remainingItems,
+    required this.favoriteItems,
     required this.totalCost,
     required this.remainingCost,
     required this.completedCost,
@@ -34,6 +36,7 @@ class BucketStats {
     final totalItems = items.length;
     final completedItems = items.where((i) => i.isCompleted).length;
     final remainingItems = totalItems - completedItems;
+    final favoriteItems = items.where((i) => i.isFavorite).length;
 
     var totalCost = 0.0;
     var completedCost = 0.0;
@@ -59,6 +62,7 @@ class BucketStats {
       totalItems: totalItems,
       completedItems: completedItems,
       remainingItems: remainingItems,
+      favoriteItems: favoriteItems,
       totalCost: totalCost,
       completedCost: completedCost,
       remainingCost: remainingCost,

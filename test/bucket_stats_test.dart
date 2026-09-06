@@ -6,6 +6,7 @@ BucketItem item({
   int id = 0,
   double price = 0,
   bool completed = false,
+  bool favorite = false,
   String category = 'Travel',
   double? actual,
 }) {
@@ -17,6 +18,7 @@ BucketItem item({
     actualPrice: actual,
     createdAt: DateTime(2024, 1, id + 1),
     isCompleted: completed,
+    isFavorite: favorite,
   );
 }
 
@@ -63,6 +65,17 @@ void main() {
       ]);
 
       expect(stats.remainingItems, 2);
+    });
+
+    test('Favorite items are counted correctly', () {
+      final stats = BucketStats.fromItems([
+        item(id: 1, price: 15000, favorite: true),
+        item(id: 2, price: 40000, favorite: true),
+        item(id: 3, price: 5000),
+        item(id: 4, price: 800, favorite: true),
+      ]);
+
+      expect(stats.favoriteItems, 3);
     });
 
     test('Completed cost is calculated correctly', () {

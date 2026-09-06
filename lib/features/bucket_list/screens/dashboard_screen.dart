@@ -21,12 +21,6 @@ class DashboardScreen extends ConsumerWidget {
     final stats = ref.watch(bucketStatsProvider);
     final items = ref.watch(bucketListProvider);
 
-    void openAddItem() {
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => const AddItemScreen()),
-      );
-    }
-
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -34,92 +28,212 @@ class DashboardScreen extends ConsumerWidget {
           children: [
             _DashboardHeader(stats: stats),
             Expanded(
-              child: items.isEmpty
-                  ? _DashboardEmpty(onAdd: openAddItem)
-                  : ListView(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
-                      children: [
-                        _RecentItemsSection(
-                          items: items,
-                          onViewAll: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => const BucketListScreen(),
-                              ),
-                            );
-                          },
-                          onOpenItem: (item) {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    ItemDetailsScreen(itemId: item.id),
-                              ),
-                            );
-                          },
-                          onToggleComplete: (item) {
-                            if (item.isCompleted) {
-                              // Un-completing never needs an actual price.
-                              ref
-                                  .read(bucketListProvider.notifier)
-                                  .toggleComplete(item.id);
-                            } else {
-                              completeItemWithActualPrice(context, ref, item);
-                            }
-                          },
-                          onToggleFavorite: (item) {
-                            ref
-                                .read(bucketListProvider.notifier)
-                                .toggleFavorite(item.id);
-                          },
-                        ),
-                        if (items.any((i) => i.isFavorite && !i.isCompleted)) ...[
-                          const SizedBox(height: 24),
-                          _PrioritiesSection(
-                            items: items,
-                            onOpenItem: (item) {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      ItemDetailsScreen(itemId: item.id),
-                                ),
-                              );
-                            },
-                            onToggleComplete: (item) {
-                              if (item.isCompleted) {
-                                ref
-                                    .read(bucketListProvider.notifier)
-                                    .toggleComplete(item.id);
-                              } else {
-                                completeItemWithActualPrice(
-                                    context, ref, item);
-                              }
-                            },
-                            onToggleFavorite: (item) {
-                              ref
-                                  .read(bucketListProvider.notifier)
-                                  .toggleFavorite(item.id);
-                            },
-                          ),
-                        ],
-                        const SizedBox(height: 24),
-                        _ProgressSummary(stats: stats),
-                        const SizedBox(height: 24),
-                        _CostSummary(
-                          stats: stats,
-                          onViewAll: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => const BucketListScreen(),
-                              ),
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-                    ),
+              child: _buildBody(context, ref, items, stats),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildBody(
+    BuildContext context,
+    WidgetRef ref,
+    List<BucketItem> items,
+    BucketStats stats,
+  ) {
+    if (items.isEmpty) {
+      return _DashboardEmpty(onAdd: () => _openAddItem(context));
+    }
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+      children: [
+        _QuickActions(
+          onAdd: () => _openAddItem(context),
+          onOpenList: () => _openBucketList(context),
+        ),
+        const SizedBox(height: 16),
+        _StatsOverview(stats: stats),
+        const SizedBox(height: 24),
+        _RecentItemsSection(
+          items: items,
+          onViewAll: () => _openBucketList(context),
+          onOpenItem: (item) => _openItemDetails(context, item),
+          onToggleComplete: (item) =>
+              _toggleComplete(context, ref, item),
+          onToggleFavorite: (item) {
+            ref
+                .read(bucketListProvider.notifier)
+                .toggleFavorite(item.id);
+          },
+        ),
+        if (items.any((i) => i.isFavorite && !i.isCompleted)) ...[
+          const SizedBox(height: 24),
+          _PrioritiesSection(
+            items: items,
+            onOpenItem: (item) => _openItemDetails(context, item),
+            onToggleComplete: (item) =>
+                _toggleComplete(context, ref, item),
+            onToggleFavorite: (item) {
+              ref
+                  .read(bucketListProvider.notifier)
+                  .toggleFavorite(item.id);
+            },
+          ),
+        ],
+        const SizedBox(height: 24),
+        _ProgressSummary(stats: stats),
+        const SizedBox(height: 24),
+        _CostSummary(
+          stats: stats,
+          onViewAll: () => _openBucketList(context),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  void _openAddItem(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const AddItemScreen()),
+    );
+  }
+
+  void _openBucketList(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const BucketListScreen()),
+    );
+  }
+
+  void _openItemDetails(BuildContext context, BucketItem item) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ItemDetailsScreen(itemId: item.id),
+      ),
+    );
+  }
+
+  void _toggleComplete(BuildContext context, WidgetRef ref, BucketItem item) {
+    if (item.isCompleted) {
+      // Un-completing never needs an actual price.
+      ref.read(bucketListProvider.notifier).toggleComplete(item.id);
+    } else {
+      completeItemWithActualPrice(context, ref, item);
+    }
+  }
+}
+
+class _QuickActions extends StatelessWidget {
+  const _QuickActions({
+    required this.onAdd,
+    required this.onOpenList,
+  });
+
+  final VoidCallback onAdd;
+  final VoidCallback onOpenList;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: FilledButton.icon(
+            onPressed: onAdd,
+            icon: const Icon(Icons.add),
+            label: const Text('Add Item'),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size.fromHeight(52),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: onOpenList,
+            icon: const Icon(Icons.list_alt),
+            label: const Text('Bucket List'),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size.fromHeight(52),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _StatsOverview extends StatelessWidget {
+  const _StatsOverview({required this.stats});
+
+  final BucketStats stats;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Expanded(child: _StatCard(label: 'Total', value: stats.totalItems, icon: Icons.inventory_2_outlined)),
+            const SizedBox(width: 12),
+            Expanded(child: _StatCard(label: 'Active', value: stats.remainingItems, icon: Icons.bolt_outlined)),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(child: _StatCard(label: 'Completed', value: stats.completedItems, icon: Icons.check_circle_outline)),
+            const SizedBox(width: 12),
+            Expanded(child: _StatCard(label: 'Favorites', value: stats.favoriteItems, icon: Icons.star_border)),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _StatCard extends StatelessWidget {
+  const _StatCard({
+    required this.label,
+    required this.value,
+    required this.icon,
+  });
+
+  final String label;
+  final int value;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 20, color: theme.colorScheme.primary),
+          const SizedBox(height: 12),
+          Text(
+            '$value',
+            style: theme.textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     );
   }

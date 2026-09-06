@@ -134,11 +134,67 @@ void main() {
     await pumpDashboard(tester);
 
     expect(find.text('Estimated cost'), findsOneWidget);
-    expect(find.text('Total'), findsOneWidget);
+    expect(find.text('Total'), findsWidgets);
     expect(find.text('Actually spent'), findsWidgets);
     expect(find.text('Remaining'), findsWidgets);
     expect(find.text('₹60,000.00'), findsWidgets);
     expect(find.text('₹55,000.00'), findsOneWidget);
+  });
+
+  testWidgets('Dashboard shows stats overview cards', (tester) async {
+    await initRepo(tester, seed: seedItems);
+    await pumpDashboard(tester);
+
+    expect(find.text('Total'), findsWidgets);
+    expect(find.text('Active'), findsOneWidget);
+    expect(find.text('Completed'), findsOneWidget);
+    expect(find.text('Favorites'), findsOneWidget);
+
+    // seedItems: 3 total, 1 completed, 2 active, 0 favorites.
+    expect(find.text('3'), findsWidgets);
+    expect(find.text('2'), findsWidgets);
+    expect(find.text('1'), findsWidgets);
+    expect(find.text('0'), findsWidgets);
+  });
+
+  testWidgets('Dashboard shows quick actions', (tester) async {
+    await initRepo(tester, seed: seedItems);
+    await pumpDashboard(tester);
+
+    expect(find.text('Add Item'), findsOneWidget);
+    expect(find.text('Bucket List'), findsOneWidget);
+  });
+
+  testWidgets('Quick action opens the add item screen', (tester) async {
+    await initRepo(tester, seed: seedItems);
+    await pumpDashboard(tester);
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Add Item'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Add Item'), findsWidgets);
+  });
+
+  testWidgets('Quick action opens the bucket list screen', (tester) async {
+    await initRepo(tester, seed: seedItems);
+    await pumpDashboard(tester);
+
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Bucket List'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Bucket List'), findsWidgets);
+  });
+
+  testWidgets('Favorites stat reflects favorited items', (tester) async {
+    await initRepo(tester, seed: [
+      item(id: 1, title: 'Visit Goa', price: 15000, favorite: true),
+      item(id: 2, title: 'Buy Camera', price: 40000, favorite: true),
+      item(id: 3, title: 'Learn Swimming', price: 5000),
+    ]);
+    await pumpDashboard(tester);
+
+    expect(find.text('Favorites'), findsOneWidget);
+    expect(container.read(bucketStatsProvider).favoriteItems, 2);
   });
 
   testWidgets('Dashboard shows empty state when no items', (tester) async {
