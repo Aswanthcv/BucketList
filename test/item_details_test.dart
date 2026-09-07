@@ -179,7 +179,7 @@ void main() {
 
       await tapDelete(tester);
 
-      expect(find.text('Delete item?'), findsOneWidget);
+      expect(find.text('Delete goal?'), findsOneWidget);
       expect(
         find.text('Are you sure you want to delete "Visit Goa"?'),
         findsOneWidget,
@@ -216,13 +216,13 @@ void main() {
       await pump(tester, EditItemScreen(item: item));
 
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Item name'),
+        find.widgetWithText(TextFormField, 'Goal name'),
         '',
       );
       await tester.tap(find.widgetWithText(FilledButton, 'Save Changes'));
       await tester.pump();
 
-      expect(find.text('Please enter an item name'), findsOneWidget);
+      expect(find.text('Please enter a goal name'), findsOneWidget);
     });
 
     testWidgets('Invalid price validation works', (tester) async {
@@ -320,7 +320,7 @@ void main() {
       await initRepo(tester, seed: sampleItem());
       await pump(tester, ItemDetailsScreen(itemId: 'missing-id'));
 
-      expect(find.text('This item no longer exists.'), findsOneWidget);
+      expect(find.text('This goal no longer exists.'), findsOneWidget);
     });
   });
 }

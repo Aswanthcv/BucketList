@@ -9,6 +9,7 @@ import 'package:bucketlist/features/bucket_list/providers/bucket_list_provider.d
 import 'package:bucketlist/features/bucket_list/providers/bucket_stats_provider.dart';
 import 'package:bucketlist/features/bucket_list/screens/dashboard_screen.dart';
 import 'package:bucketlist/features/bucket_list/screens/bucket_list_screen.dart';
+import 'package:bucketlist/features/bucket_list/widgets/bucket_list_item.dart';
 
 void main() {
   late BucketListRepository repository;
@@ -146,7 +147,7 @@ void main() {
     await pumpDashboard(tester);
 
     expect(find.text('Your bucket list is empty'), findsWidgets);
-    expect(find.text('Add Item'), findsWidgets);
+    expect(find.text('Add Goal'), findsWidgets);
   });
 
   testWidgets('Bucket List displays total cost in the bottom summary', (tester) async {
@@ -215,13 +216,21 @@ void main() {
     await pumpDashboard(tester);
 
     expect(find.text('⭐ Priorities'), findsOneWidget);
+    final priorities = find.byKey(const ValueKey('priorities-section'));
+    Finder inPriorities(String title) =>
+        find.descendant(of: priorities, matching: find.text(title));
+
     // The three newest favorite active items are shown.
-    expect(find.text('Read Books'), findsWidgets);
-    expect(find.text('Cook Pasta'), findsWidgets);
-    expect(find.text('Buy Camera'), findsOneWidget);
+    expect(inPriorities('Read Books'), findsOneWidget);
+    expect(inPriorities('Cook Pasta'), findsOneWidget);
+    expect(inPriorities('Buy Camera'), findsOneWidget);
+    expect(
+      find.descendant(of: priorities, matching: find.byType(BucketListItem)),
+      findsNWidgets(3),
+    );
     // The 4th active favorite is clipped, completed favorites are excluded.
-    expect(find.text('Visit Goa'), findsNothing);
-    expect(find.text('Run Marathon'), findsNothing);
+    expect(inPriorities('Visit Goa'), findsNothing);
+    expect(inPriorities('Run Marathon'), findsNothing);
   });
 
   testWidgets('No Priorities section when there are no favorites', (tester) async {
@@ -251,13 +260,21 @@ void main() {
     await pumpDashboard(tester);
 
     expect(find.text('⭐ Priorities'), findsOneWidget);
-    expect(find.text('Visit Goa'), findsOneWidget);
+    final priorities = find.byKey(const ValueKey('priorities-section'));
+    Finder inPriorities(String title) =>
+        find.descendant(of: priorities, matching: find.text(title));
+    expect(inPriorities('Visit Goa'), findsOneWidget);
 
-    await tester.tap(find.byKey(const ValueKey('favorite-1')));
+    await tester.tap(
+      find.descendant(
+        of: priorities,
+        matching: find.byKey(const ValueKey('favorite-1')),
+      ),
+    );
     await tester.pumpAndSettle();
 
     expect(repository.getAll().firstWhere((i) => i.id == '1').isFavorite, false);
     expect(find.text('⭐ Priorities'), findsNothing);
-    expect(find.text('Visit Goa'), findsNothing);
+    expect(inPriorities('Visit Goa'), findsNothing);
   });
 }

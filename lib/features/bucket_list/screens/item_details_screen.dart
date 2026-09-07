@@ -28,15 +28,15 @@ class ItemDetailsScreen extends ConsumerWidget {
     // Item was deleted.
     if (item == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Item Details')),
-        body: const Center(child: Text('This item no longer exists.')),
+        appBar: AppBar(title: const Text('Goal Details')),
+        body: const Center(child: Text('This goal no longer exists.')),
       );
     }
     final currentItem = item;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Item Details'),
+        title: const Text('Goal Details'),
         actions: [
           IconButton(
             key: ValueKey('favorite-${currentItem.id}'),
@@ -103,7 +103,7 @@ class ItemDetailsScreen extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete item?'),
+        title: const Text('Delete goal?'),
         content: Text('Are you sure you want to delete "${item.title}"?'),
         actions: [
           TextButton(

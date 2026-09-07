@@ -13,7 +13,7 @@ class EditItemScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit Item'),
+        title: const Text('Edit Goal'),
       ),
       body: SafeArea(
         child: ItemForm(

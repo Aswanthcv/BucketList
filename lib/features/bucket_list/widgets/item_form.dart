@@ -151,13 +151,13 @@ class _ItemFormState extends State<ItemForm> {
             controller: _titleController,
             textInputAction: TextInputAction.next,
             decoration: const InputDecoration(
-              labelText: 'Item name',
+              labelText: 'Goal name',
               hintText: 'e.g. Banana',
               prefixIcon: Icon(Icons.edit_outlined),
             ),
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
-                return 'Please enter an item name';
+                return 'Please enter a goal name';
               }
               return null;
             },

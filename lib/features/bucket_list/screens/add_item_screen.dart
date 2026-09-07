@@ -15,7 +15,7 @@ class AddItemScreen extends ConsumerWidget {
       ),
       body: SafeArea(
         child: ItemForm(
-          submitLabel: 'Add Item',
+          submitLabel: 'Add Goal',
           onSubmit: (title, category, price, actualPrice, note) {
             final item = BucketItem(
               id: DateTime.now().microsecondsSinceEpoch.toString(),
@@ -32,7 +32,7 @@ class AddItemScreen extends ConsumerWidget {
               ref.read(bucketListProvider.notifier).addItem(item);
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Item added successfully')),
+                  const SnackBar(content: Text('Goal added successfully')),
                 );
                 Navigator.of(context).pop();
               }

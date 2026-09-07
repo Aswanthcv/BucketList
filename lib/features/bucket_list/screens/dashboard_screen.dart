@@ -47,9 +47,9 @@ class DashboardScreen extends ConsumerWidget {
     }
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
       children: [
-        _RecentItemsSection(
+        _GoalsSection(
           items: items,
           onViewAll: () => _openBucketList(context),
           onTap: (item) => _toggleComplete(context, ref, item),
@@ -61,7 +61,7 @@ class DashboardScreen extends ConsumerWidget {
           },
         ),
         if (items.any((i) => i.isFavorite && !i.isCompleted)) ...[
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
           _PrioritiesSection(
             items: items,
             onTap: (item) => _toggleComplete(context, ref, item),
@@ -73,9 +73,9 @@ class DashboardScreen extends ConsumerWidget {
             },
           ),
         ],
-        const SizedBox(height: 24),
+        const SizedBox(height: 20),
         _ProgressSummary(stats: stats),
-        const SizedBox(height: 24),
+        const SizedBox(height: 20),
         _CostSummary(
           stats: stats,
           onViewAll: () => _openBucketList(context),
@@ -145,7 +145,7 @@ class _DashboardHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 12, 12),
+      padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -271,8 +271,8 @@ class _ProgressSummary extends StatelessWidget {
   }
 }
 
-class _RecentItemsSection extends StatelessWidget {
-  const _RecentItemsSection({
+class _GoalsSection extends StatelessWidget {
+  const _GoalsSection({
     required this.items,
     required this.onViewAll,
     required this.onTap,
@@ -288,30 +288,30 @@ class _RecentItemsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final recent = [...items]
+    final goals = [...items]
       ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-    final shown = recent.take(3).toList();
 
     return Column(
+      key: const ValueKey('goals-section'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SectionHeader(
-          title: 'Recent items',
+          title: 'Goals',
           trailing: TextButton(
             onPressed: onViewAll,
             child: const Text('View all'),
           ),
         ),
         const SizedBox(height: 12),
-        for (final item in shown) ...[
+        for (final goal in goals) ...[
           BucketListItem(
-            item: item,
-            onTap: () => onTap(item),
-            onEdit: () => onEdit(item),
-            onToggleFavorite: () => onToggleFavorite(item),
+            item: goal,
+            onTap: () => onTap(goal),
+            onEdit: () => onEdit(goal),
+            onToggleFavorite: () => onToggleFavorite(goal),
             showMenu: false,
           ),
-          if (item != shown.last) const SizedBox(height: 8),
+          if (goal != goals.last) const SizedBox(height: 8),
         ],
       ],
     );
@@ -340,6 +340,7 @@ class _PrioritiesSection extends StatelessWidget {
     final shown = priorities.take(3).toList();
 
     return Column(
+      key: const ValueKey('priorities-section'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionHeader(title: '⭐ Priorities'),
@@ -495,7 +496,7 @@ class _DashboardEmpty extends StatelessWidget {
         icon: Icons.explore_outlined,
         title: 'Your bucket list is empty',
         message: 'Start adding the things you want to do, buy, or achieve.',
-        actionLabel: 'Add Item',
+        actionLabel: 'Add Goal',
         onAction: onAdd,
       ),
     );

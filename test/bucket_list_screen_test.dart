@@ -87,7 +87,7 @@ void main() {
     await pumpBucketList(tester);
 
     expect(find.text('Your bucket list is empty'), findsOneWidget);
-    expect(find.text('Add Item'), findsWidgets);
+    expect(find.text('Add Goal'), findsWidgets);
   });
 
   testWidgets('Saved items appear in the list', (tester) async {
@@ -189,7 +189,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Confirmation dialog appears
-    expect(find.text('Delete item?'), findsOneWidget);
+    expect(find.text('Delete goal?'), findsOneWidget);
     expect(find.text('Are you sure you want to delete "Visit Goa"?'), findsOneWidget);
 
     // Confirm
@@ -279,9 +279,9 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Nothing here yet'), findsOneWidget);
-      expect(find.text('No items match this category.'), findsOneWidget);
+      expect(find.text('No goals match this category.'), findsOneWidget);
 
-      await tester.tap(find.text('Show all items'));
+      await tester.tap(find.text('Show all goals'));
       await tester.pumpAndSettle();
       expect(find.text('Goa trip'), findsOneWidget);
     });
@@ -613,7 +613,7 @@ void main() {
 
   group('Favorites', () {
     Future<void> enableFavorites(WidgetTester tester) async {
-      await tester.tap(find.text('Favorites'));
+      await tester.tap(find.byKey(favoritesFilterKey));
       await tester.pumpAndSettle();
     }
 
@@ -815,7 +815,7 @@ void main() {
       await enableFavorites(tester);
 
       expect(find.text('No favorites yet'), findsOneWidget);
-      expect(find.text('Tap the star on any item to keep it close.'), findsOneWidget);
+      expect(find.text('Tap the star on any goal to keep it close.'), findsOneWidget);
     });
 
     testWidgets('completing a favorite keeps it favorite', (tester) async {
@@ -958,7 +958,7 @@ void main() {
           expect(find.text('Visit Goa'), findsOneWidget);
 
           // Favorites filter with starred rows must not overflow either.
-          await tester.tap(find.text('Favorites'));
+          await tester.tap(find.byKey(favoritesFilterKey));
           await tester.pumpAndSettle();
           expect(tester.takeException(), isNull,
               reason: 'Favorites filter overflow at $size in $themeMode');

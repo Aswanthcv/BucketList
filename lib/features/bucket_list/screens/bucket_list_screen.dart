@@ -33,6 +33,8 @@ enum BucketListStatusFilter {
   final String label;
 }
 
+const ValueKey<String> favoritesFilterKey = ValueKey('favorites-filter');
+
 class BucketListScreen extends ConsumerStatefulWidget {
   const BucketListScreen({super.key});
 
@@ -73,7 +75,7 @@ class _BucketListScreenState extends ConsumerState<BucketListScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete item?'),
+        title: const Text('Delete goal?'),
         content: Text('Are you sure you want to delete "${item.title}"?'),
         actions: [
           TextButton(
@@ -174,18 +176,16 @@ class _BucketListScreenState extends ConsumerState<BucketListScreen> {
               });
             },
           ),
-          _StatusFilterBar(
+          _FilterControls(
+            enabled: allItems.isNotEmpty,
             status: _status,
-            onSelected: (status) {
+            onStatusChanged: (status) {
               setState(() {
                 _status = status;
               });
             },
-          ),
-          _FavoritesFilterBar(
-            enabled: allItems.isNotEmpty,
             favoritesOnly: _favoritesOnly,
-            onChanged: (value) {
+            onFavoritesChanged: (value) {
               setState(() {
                 _favoritesOnly = value;
               });
@@ -224,7 +224,7 @@ class _BucketListScreenState extends ConsumerState<BucketListScreen> {
               textInputAction: TextInputAction.search,
               onChanged: (_) => setState(() {}),
               decoration: const InputDecoration(
-                hintText: 'Search bucket items...',
+                hintText: 'Search goals...',
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
                 focusedBorder: InputBorder.none,
@@ -471,16 +471,19 @@ class _CategoryFilterBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final choices = ['All', ...defaultCategories];
     return SizedBox(
-      height: 52,
+      height: 44,
       child: ListView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
         children: [
           for (final choice in choices)
             Padding(
               padding: const EdgeInsets.only(right: 8),
               child: ChoiceChip(
-                label: Text(choice),
+                label: Text(
+                  choice,
+                  style: const TextStyle(fontSize: 13),
+                ),
                 selected: choice == 'All'
                     ? selected == null
                     : selected == choice,
@@ -490,8 +493,49 @@ class _CategoryFilterBar extends StatelessWidget {
                       }
                     : null,
                 showCheckmark: false,
+                visualDensity: const VisualDensity(vertical: -3),
               ),
             ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FilterControls extends StatelessWidget {
+  const _FilterControls({
+    required this.enabled,
+    required this.status,
+    required this.onStatusChanged,
+    required this.favoritesOnly,
+    required this.onFavoritesChanged,
+  });
+
+  final bool enabled;
+  final BucketListStatusFilter status;
+  final ValueChanged<BucketListStatusFilter> onStatusChanged;
+  final bool favoritesOnly;
+  final ValueChanged<bool> onFavoritesChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 6, 16, 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: _StatusFilterBar(
+              status: status,
+              onSelected: onStatusChanged,
+            ),
+          ),
+          const SizedBox(width: 8),
+          _FavoriteFilterButton(
+            key: favoritesFilterKey,
+            enabled: enabled,
+            active: favoritesOnly,
+            onChanged: onFavoritesChanged,
+          ),
         ],
       ),
     );
@@ -510,42 +554,66 @@ class _StatusFilterBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-      child: SegmentedButton<BucketListStatusFilter>(
-        segments: [
-          for (final option in BucketListStatusFilter.values)
-            ButtonSegment(
-              value: option,
-              label: Text(option.label),
+    return Container(
+      height: 40,
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      child: Row(
+        children: [
+          for (var i = 0; i < BucketListStatusFilter.values.length; i++) ...[
+            if (i > 0) const SizedBox(width: 2),
+            Expanded(
+              child: _StatusSegment(
+                label: BucketListStatusFilter.values[i].label,
+                selected: status == BucketListStatusFilter.values[i],
+                onTap: () => onSelected(BucketListStatusFilter.values[i]),
+              ),
             ),
+          ],
         ],
-        selected: {status},
-        showSelectedIcon: false,
-        onSelectionChanged: (selection) => onSelected(selection.first),
-        style: ButtonStyle(
-          visualDensity: VisualDensity.compact,
-          side: WidgetStatePropertyAll(
-            BorderSide(color: scheme.outlineVariant),
-          ),
-          backgroundColor: WidgetStateProperty.resolveWith((states) {
-            if (states.contains(WidgetState.selected)) {
-              return scheme.primaryContainer;
-            }
-            return scheme.surface;
-          }),
-          foregroundColor: WidgetStateProperty.resolveWith((states) {
-            if (states.contains(WidgetState.selected)) {
-              return scheme.onPrimaryContainer;
-            }
-            return scheme.onSurfaceVariant;
-          }),
-          textStyle: WidgetStatePropertyAll(
-            TextStyle(fontWeight: FontWeight.w600),
-          ),
-          shape: WidgetStatePropertyAll(
-            RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+      ),
+    );
+  }
+}
+
+class _StatusSegment extends StatelessWidget {
+  const _StatusSegment({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Material(
+      color: selected ? scheme.primaryContainer : Colors.transparent,
+      borderRadius: BorderRadius.circular(8),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: onTap,
+        child: SizedBox(
+          height: 32,
+          child: Center(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: selected
+                    ? scheme.onPrimaryContainer
+                    : scheme.onSurfaceVariant,
+              ),
             ),
           ),
         ),
@@ -554,58 +622,42 @@ class _StatusFilterBar extends StatelessWidget {
   }
 }
 
-class _FavoritesFilterBar extends StatelessWidget {
-  const _FavoritesFilterBar({
+class _FavoriteFilterButton extends StatelessWidget {
+  const _FavoriteFilterButton({
+    super.key,
     required this.enabled,
-    required this.favoritesOnly,
+    required this.active,
     required this.onChanged,
   });
 
   final bool enabled;
-  final bool favoritesOnly;
+  final bool active;
   final ValueChanged<bool> onChanged;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-      child: SegmentedButton<bool>(
-        segments: [
-          const ButtonSegment(value: false, label: Text('All')),
-          const ButtonSegment(
-            value: true,
-            label: Text('Favorites'),
-            icon: Icon(Icons.star, size: 18),
-          ),
-        ],
-        selected: {favoritesOnly},
-        showSelectedIcon: false,
-        onSelectionChanged:
-            enabled ? (selection) => onChanged(selection.first) : null,
-        style: ButtonStyle(
-          visualDensity: VisualDensity.compact,
-          side: WidgetStatePropertyAll(
-            BorderSide(color: scheme.outlineVariant),
-          ),
-          backgroundColor: WidgetStateProperty.resolveWith((states) {
-            if (states.contains(WidgetState.selected)) {
-              return scheme.primaryContainer;
-            }
-            return scheme.surface;
-          }),
-          foregroundColor: WidgetStateProperty.resolveWith((states) {
-            if (states.contains(WidgetState.selected)) {
-              return scheme.onPrimaryContainer;
-            }
-            return scheme.onSurfaceVariant;
-          }),
-          textStyle: WidgetStatePropertyAll(
-            TextStyle(fontWeight: FontWeight.w600),
-          ),
-          shape: WidgetStatePropertyAll(
-            RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+    final isActive = enabled && active;
+    return Material(
+      color: isActive ? scheme.primaryContainer : scheme.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: scheme.outlineVariant),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: enabled ? () => onChanged(!active) : null,
+        child: Tooltip(
+          message: 'Favorites',
+          child: SizedBox(
+            width: 40,
+            height: 40,
+            child: Icon(
+              isActive ? Icons.star : Icons.star_border,
+              size: 20,
+              color: isActive
+                  ? scheme.onPrimaryContainer
+                  : scheme.onSurfaceVariant,
             ),
           ),
         ),
@@ -622,7 +674,7 @@ class _NoFavorites extends StatelessWidget {
     return const EmptyState(
       icon: Icons.star_border,
       title: 'No favorites yet',
-      message: 'Tap the star on any item to keep it close.',
+      message: 'Tap the star on any goal to keep it close.',
     );
   }
 }
@@ -699,7 +751,7 @@ class _EmptyBucketList extends StatelessWidget {
       icon: Icons.explore_outlined,
       title: 'Your bucket list is empty',
       message: 'Start adding the things you want to do, buy, or achieve.',
-      actionLabel: 'Add Item',
+      actionLabel: 'Add Goal',
       onAction: onAdd,
     );
   }
@@ -723,12 +775,12 @@ class _FilteredEmpty extends StatelessWidget {
           EmptyState(
             icon: Icons.filter_alt_off_outlined,
             title: 'Nothing here yet',
-            message: 'No items match this category.',
+            message: 'No goals match this category.',
           ),
           if (category != null)
             TextButton(
               onPressed: onClear,
-              child: const Text('Show all items'),
+              child: const Text('Show all goals'),
             ),
         ],
       ),

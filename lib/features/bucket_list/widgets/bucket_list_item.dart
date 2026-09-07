@@ -64,19 +64,18 @@ class BucketListItem extends StatelessWidget {
     return formatCurrency(item.estimatedPrice);
   }
 
+  bool get _hasActions => onEdit != null || (showMenu && onDelete != null);
+
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       curve: Curves.easeInOut,
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: scheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: item.isCompleted
-              ? Theme.of(context).colorScheme.outlineVariant
-              : Theme.of(context).colorScheme.outlineVariant,
-        ),
+        border: Border.all(color: scheme.outlineVariant),
       ),
       child: Material(
         color: Colors.transparent,
@@ -87,6 +86,7 @@ class BucketListItem extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 if (onToggleFavorite != null) ...[
                   _FavoriteToggle(
@@ -94,12 +94,13 @@ class BucketListItem extends StatelessWidget {
                     isFavorite: item.isFavorite,
                     onToggle: onToggleFavorite!,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 12),
                 ] else
                   const SizedBox(width: 4),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         item.title,
@@ -112,114 +113,147 @@ class BucketListItem extends StatelessWidget {
                                   : null,
                               decorationThickness: 2,
                               color: item.isCompleted
-                                  ? Theme.of(context).colorScheme.outline
-                                  : Theme.of(context).colorScheme.onSurface,
+                                  ? scheme.outline
+                                  : scheme.onSurface,
                             ),
                       ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Flexible(
-                            child: CategoryBadge(category: item.category),
-                          ),
-                        ],
-                      ),
+                      const SizedBox(height: 6),
+                      CategoryBadge(category: item.category),
                     ],
                   ),
                 ),
                 const SizedBox(width: 12),
-                Flexible(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 96),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SizedBox(
-                          width: 96,
-                          child: Text(
-                            _displayPrice(),
-                            textAlign: TextAlign.right,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: item.isCompleted
-                                      ? Theme.of(context).colorScheme.outline
-                                      : AppColors.categoryColor(item.category) ??
-                                          Theme.of(context).colorScheme.onSurface,
-                                ),
-                          ),
-                        ),
-                        if (item.isCompleted && item.actualPrice != null) ...[
-                          const SizedBox(height: 1),
-                          SizedBox(
-                            width: 96,
-                            child: Text(
-                              'actual',
-                              textAlign: TextAlign.right,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                  ),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    SizedBox(
+                      width: 96,
+                      child: Text(
+                        _displayPrice(),
+                        textAlign: TextAlign.right,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: item.isCompleted
+                                  ? scheme.outline
+                                  : AppColors.categoryColor(item.category) ??
+                                      scheme.onSurface,
                             ),
-                          ),
-                        ],
-                        if (showMenu && onDelete != null) ...[
-                          const SizedBox(height: 2),
-                          SizedBox(
-                            width: 28,
-                            height: 28,
-                            child: PopupMenuButton<String>(
-                              padding: EdgeInsets.zero,
-                              iconSize: 18,
-                              icon: Icon(
-                                Icons.more_vert,
-                                color: Theme.of(context).colorScheme.outline,
+                      ),
+                    ),
+                    if (item.isCompleted && item.actualPrice != null) ...[
+                      const SizedBox(height: 1),
+                      SizedBox(
+                        width: 96,
+                        child: Text(
+                          'actual',
+                          textAlign: TextAlign.right,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                color: scheme.onSurfaceVariant,
                               ),
-                              onSelected: (value) {
-                                if (value == 'delete') {
-                                  onDelete!();
-                                }
-                              },
-                              itemBuilder: (context) => const [
-                                PopupMenuItem(
-                                  value: 'delete',
-                                  child: Text('Delete'),
-                                ),
-                              ],
+                        ),
+                      ),
+                    ],
+                    if (_hasActions) ...[
+                      const SizedBox(height: 6),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (onEdit != null) ...[
+                            _CardActionButton(
+                              key: ValueKey('edit-${item.id}'),
+                              tooltip: 'Edit',
+                              icon: Icons.edit_outlined,
+                              color: scheme.onSurfaceVariant,
+                              onPressed: onEdit!,
                             ),
-                          ),
+                          ],
+                          if (showMenu && onDelete != null) ...[
+                            _CardMenuButton(
+                              color: scheme.outline,
+                              onDelete: onDelete!,
+                            ),
+                          ],
                         ],
-                      ],
-                    ),
-                  ),
+                      ),
+                    ],
+                  ],
                 ),
-                if (onEdit != null) ...[
-                  const SizedBox(width: 4),
-                  IconButton(
-                    key: ValueKey('edit-${item.id}'),
-                    tooltip: 'Edit',
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(
-                      minWidth: 34,
-                      minHeight: 34,
-                      maxWidth: 34,
-                      maxHeight: 34,
-                    ),
-                    iconSize: 18,
-                    icon: Icon(
-                      Icons.edit_outlined,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                    onPressed: onEdit,
-                  ),
-                ],
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _CardActionButton extends StatelessWidget {
+  const _CardActionButton({
+    super.key,
+    required this.tooltip,
+    required this.icon,
+    required this.color,
+    required this.onPressed,
+  });
+
+  final String tooltip;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      tooltip: tooltip,
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(
+        minWidth: 34,
+        minHeight: 34,
+        maxWidth: 34,
+        maxHeight: 34,
+      ),
+      iconSize: 18,
+      icon: Icon(icon, color: color),
+      onPressed: onPressed,
+    );
+  }
+}
+
+class _CardMenuButton extends StatelessWidget {
+  const _CardMenuButton({
+    required this.color,
+    required this.onDelete,
+  });
+
+  final Color color;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 34,
+      height: 34,
+      child: PopupMenuButton<String>(
+        tooltip: 'More options',
+        padding: EdgeInsets.zero,
+        iconSize: 18,
+        icon: Icon(Icons.more_vert, color: color),
+        onSelected: (value) {
+          if (value == 'delete') {
+            onDelete();
+          }
+        },
+        itemBuilder: (context) => const [
+          PopupMenuItem(
+            value: 'delete',
+            child: Text('Delete'),
+          ),
+        ],
       ),
     );
   }

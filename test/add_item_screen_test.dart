@@ -53,8 +53,8 @@ void main() {
   }
 
   Future<void> tapSave(WidgetTester tester) async {
-    await tester.ensureVisible(find.widgetWithText(FilledButton, 'Add Item'));
-    await tester.tap(find.widgetWithText(FilledButton, 'Add Item'));
+    await tester.ensureVisible(find.widgetWithText(FilledButton, 'Add Goal'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Add Goal'));
     await tester.pump();
   }
 
@@ -70,14 +70,14 @@ void main() {
 
     await tapSave(tester);
 
-    expect(find.text('Please enter an item name'), findsOneWidget);
+    expect(find.text('Please enter a goal name'), findsOneWidget);
   });
 
   testWidgets('Missing category shows validation error', (tester) async {
     await pumpAddItemScreen(tester);
 
     await tester.enterText(
-      find.widgetWithText(TextFormField, 'Item name'),
+      find.widgetWithText(TextFormField, 'Goal name'),
       'Visit Goa',
     );
     await tester.enterText(
@@ -94,7 +94,7 @@ void main() {
     await pumpAddItemScreen(tester);
 
     await tester.enterText(
-      find.widgetWithText(TextFormField, 'Item name'),
+      find.widgetWithText(TextFormField, 'Goal name'),
       'Visit Goa',
     );
     await tester.enterText(
@@ -111,7 +111,7 @@ void main() {
     await pumpAddItemScreen(tester);
 
     await tester.enterText(
-      find.widgetWithText(TextFormField, 'Item name'),
+      find.widgetWithText(TextFormField, 'Goal name'),
       'Visit Goa',
     );
 
@@ -124,7 +124,7 @@ void main() {
     await pumpAddItemScreen(tester);
 
     await tester.enterText(
-      find.widgetWithText(TextFormField, 'Item name'),
+      find.widgetWithText(TextFormField, 'Goal name'),
       'Visit Goa',
     );
     await tester.enterText(
@@ -147,7 +147,7 @@ void main() {
     await pumpAddItemScreen(tester);
 
     await tester.enterText(
-      find.widgetWithText(TextFormField, 'Item name'),
+      find.widgetWithText(TextFormField, 'Goal name'),
       'Visit Goa',
     );
 
@@ -174,7 +174,7 @@ void main() {
     expect(item.isCompleted, false);
     expect(item.id, isNotEmpty);
 
-    expect(find.text('Item added successfully'), findsOneWidget);
+    expect(find.text('Goal added successfully'), findsOneWidget);
 
     await tester.pump(const Duration(milliseconds: 4000));
     await tester.pumpAndSettle();
@@ -189,7 +189,7 @@ void main() {
     await pumpAddItemScreen(tester);
 
     await tester.enterText(
-      find.widgetWithText(TextFormField, 'Item name'),
+      find.widgetWithText(TextFormField, 'Goal name'),
       'Buy a camera',
     );
 
